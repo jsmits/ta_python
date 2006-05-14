@@ -12,14 +12,25 @@ class Ema:
         if args: self.row = args[0]
         self.input = []
         self.output = []
+        self.firstfilledindex = None
         
         logging.config.fileConfig("logging.conf")
         self.logger = logging.getLogger("Indicator")
         
     def append(self, value):
+        if value == None: 
+            if not self.firstfilledindex:
+                self.input.append(None)
+                self.output.append(None)
+                return self.output[-1]
+            else:
+                 self.logger.debug('invalid input: %s; None appended after real values in list' % value)
+                 return False
         # check if valid input
         if not self._validate(value): return
         if type(value) is tuple: value = value[self.row]
+        if self.firstfilledindex != 0 and not self.firstfilledindex:
+            self.firstfilledindex = len(self.output)
         if self._calculate(value):
             return self.output[-1]
         
@@ -32,14 +43,14 @@ class Ema:
     def _calculate(self, value):
         self.input.append(float(value))
         outputvalue = None
-        if len(self.input) == self.parameter: # first one is a sma
+        if len(self.input) == self.firstfilledindex + self.parameter: # first one is a sma
             try:
                 outputvalue = sum(self.input[(len(self.input)-self.parameter):len(self.input)]) / self.parameter
             except:
                 self.logger.debug('error calculating first sma in ema; reverting input data back to previous state')
                 self.input = self.input[:-1]
-                return False;
-        if len(self.input) > self.parameter:
+                return False
+        if len(self.input) > self.firstfilledindex + self.parameter:
             try:    
                 # outputvalue = sum(self.input[(len(self.input)-self.parameter):len(self.input)]) / self.parameter
                 outputvalue = ((value - self.output[-1]) * (2.0 / (1+self.parameter))) + self.output[-1]
