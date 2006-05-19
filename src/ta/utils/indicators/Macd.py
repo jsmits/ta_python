@@ -17,7 +17,7 @@ class Macd:
         self.output = [] # macd
         self.ema_macd = Ema(parameter[2])
         
-        logging.config.fileConfig("logging.conf")
+        logging.config.fileConfig("../logging.conf")
         self.logger = logging.getLogger("Indicator")
         
     def append(self, value):
