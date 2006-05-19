@@ -9,7 +9,7 @@ class Sma:
         self.input = []
         self.output = []
         
-        logging.config.fileConfig("logging.conf")
+        logging.config.fileConfig("../logging.conf")
         self.logger = logging.getLogger("Indicator")
         
     def append(self, value):
