@@ -2,17 +2,17 @@ import logging
 import logging.config
 import os
 import datetime
-from Tick2Candle import Tick2Candle
+from CandleGenerator import CandleGenerator
 from Sma import Sma
 
 class TimeFrame:
     
-    def __init__(self, ticker, period, *args, **kwargs):
-        self.ticker = ticker
+    def __init__(self, period, *args, **kwargs):
+        
         self.period = period
         self.indicators = []
         
-        self.candleGenerator = Tick2Candle(period)
+        self.candleGenerator = CandleGenerator(period)
         
         self.times = []
         self.opens = []
@@ -38,13 +38,10 @@ class TimeFrame:
         for ind in self.indicators:
             ind.append(value)
         
-    def handleTick(self, tick):
-        if not self._validateTick(tick):
+    def handleTick(self, time, last):
+        if not self._validateTick(time, last):
             # raise Error
             return
-        time = tick[0]
-        ticker = tick[1]
-        last = tick[2]
         candles = self.candleGenerator.processTick(time, last)
         for candle in candles:
             self.append(candle)
@@ -71,27 +68,20 @@ class TimeFrame:
             self.logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
             return False
         
-    def _validateTick(self, tick):
-        if type(tick) is tuple:
-            if len(tick) != 3:
-                self.logger.error('invalid input: tuple length should be 3 (datetime, ticker, last); input: %s' % (tick,)) 
-                return False
-            elif not type(tick[0]) is datetime.datetime:
-                self.logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (tick[0],)) 
-                return False
-            elif not type(tick[1]) is int:
-                self.logger.error('invalid input: tuple element [1] should be an int (ticker); input: %s' % (tick[1],)) 
-                return False
-            elif not (type(tick[2]) is int or type(tick[2]) is float):
-                self.logger.error('invalid input: tuple element [2] should be an int or float (last); input: %s' % (tick[2],)) 
-                return False
-            if tick[1] != self.ticker:
-                self.logger.error('invalid input: tick ticker %s does not match self.ticker %s' % (tick[1], self.ticker)) 
-                return False
-            return True
-        else:
-            self.logger.error('invalid input: should be a tuple (datetime, ticker, last); input: %s' % (tick,)) 
+    def _validateTick(self, time, last):
+        if not time:
+            self.logger.error('invalid input: time is not supplied') 
             return False
+        if not last:
+            self.logger.error('invalid input: last is not supplied') 
+            return False
+        if not type(time) is datetime.datetime:
+            self.logger.error('invalid input: time should be a datetime; input: %s' % (time,)) 
+            return False
+        if not (type(last) is int or type(last) is float):
+            self.logger.error('invalid input: last should be an int or float; input: %s' % (last,)) 
+            return False    
+        return True
         
     def virtualCheck(self, value):
         if len(self.times) > 0 and self.times[-1] == value[0]:
@@ -117,9 +107,9 @@ class TimeFrame:
     def __str__(self):
         string = ''
         #TODO
-        return 'TimeFrame(%s, %s):\n' % (self.ticker, self.period)
+        return 'TimeFrame(%s):\n' % self.period
     def __repr__(self):
-        return 'TimeFrame(%s, %s)' % (self.ticker, self.period)
+        return 'TimeFrame(%s)' % self.period
     def __len__(self):
         return len(self.times)
     def __getitem__(self, offset):
@@ -130,7 +120,7 @@ class TimeFrame:
     
 if __name__=='__main__':
     s = Sma(4)
-    tf = TimeFrame(5555, 1, indicators=[s])
+    tf = TimeFrame(3, indicators=[s])
     
     ticks = [(datetime.datetime(2006,12,5,9,30,0), 12.55),
              (datetime.datetime(2006,12,5,9,30,15), 13.02),
@@ -147,7 +137,7 @@ if __name__=='__main__':
     
     start = datetime.datetime.now()
     for t in ticks:
-        tf.handleTick((t[0], 5555, t[1]))
+        tf.handleTick(t[0], t[1])
     end = datetime.datetime.now()
     diff = end - start
     dfsec = float("" + str(diff.seconds) + "." + str(diff.microseconds))
