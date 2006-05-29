@@ -6,8 +6,12 @@ import time
 
 class Tick2Candle:
     
-    def __init__(self, period):
+    def __init__(self, period, openingtime=datetime.time(15,30), closingtime=datetime.time(22,00)):
         self.period = period
+        self.openingtime = openingtime
+        self.closingtime = closingtime
+        
+        self.candletimes = []
         
         self.logger = logging.getLogger(self.__class__.__name__)
         try: logging.config.fileConfig(os.getcwd() + "/logging.conf")
@@ -24,7 +28,18 @@ class Tick2Candle:
         self.low = None
         self.close = None
         
+        self.correction = 0
+        self.createCandleTimes()
+        
         self.returnvalue = None
+        
+    def createCandleTimes(self):
+        t = self.timeInSec(self.openingtime)
+        while t < self.timeInSec(self.closingtime):
+            et = t + self.period * 60
+            self.candletimes.append((self.secondsToTime(t), self.secondsToTime(et)))
+            t += self.period * 60
+        print "candletimes: %s" % self.candletimes
         
     def processTick(self, time, value):
         
@@ -45,11 +60,15 @@ class Tick2Candle:
         return self.returnValue
     
     def setTimes(self, t):
-        timestamp = time.mktime(t.timetuple())
-        starttimestamp = timestamp - (timestamp % (self.period * 60))
-        endtimestamp = starttimestamp + (self.period * 60)
-        self.starttime = datetime.datetime.fromtimestamp(starttimestamp)
-        self.endtime = datetime.datetime.fromtimestamp(endtimestamp)
+        time = t.time()
+        for s, e in self.candletimes:
+            if time >= s and time < e:
+                self.starttime = datetime.datetime(t.year, t.month, t.day, s.hour, s.minute, s.second)
+                self.endtime = datetime.datetime(t.year, t.month, t.day, e.hour, e.minute, e.second)
+                if self.endtime.time() > self.closingtime:
+                    self.endtime = datetime.datetime(t.year, t.month, t.day, self.closingtime.hour, self.closingtime.minute, self.closingtime.second)                    
+                break
+        print "starttime: %s, endtime: %s" % (self.starttime, self.endtime)
                 
     def createReturnValue(self, time):
         self.time = self.starttime
@@ -68,6 +87,7 @@ class Tick2Candle:
             
         
     def gapValues(self, t):
+        if t.date() > self.endtime.date(): return [] # next day; no gaps
         newtimestamp = time.mktime(t.timetuple())
         endtimestamp = time.mktime(self.endtime.timetuple())
         delta = newtimestamp - endtimestamp
@@ -86,6 +106,15 @@ class Tick2Candle:
         self.high = None
         self.low = None
         self.close = None
+        
+    def timeInSec(self, time):
+        return time.hour * 60 * 60 + time.minute * 60 + time.second
+
+    def secondsToTime(self, seconds):
+        hour = seconds / (60 * 60)
+        minute = (seconds - hour * 60 * 60) / 60
+        second = seconds - (hour * 60 * 60) - (minute * 60)
+        return datetime.time(hour, minute, second)
     
 if __name__=='__main__':
     tc = Tick2Candle(3)
