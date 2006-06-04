@@ -1,8 +1,8 @@
-# indicators/__init__.py
-import sys
-import Atr, Ema, Macd, Sma, Tops
+#!/usr/bin/env python
+""" ta -> the ta package initialization script
+"""
 
-sys.path.append("./")
-sys.path.append("../")
-
-__all__ = ["Atr", "Ema", "Macd", "Sma", "Tops"]
+__about__ = {
+    'author' : 'Sander Smits, jhmsmits@xs4all.nl',
+    'release' : '0.01',
+}
