@@ -9,4 +9,4 @@ logger = Logger.logger()
 s = Sma(4)
 print s
 
-logger.debug("sma test logging")
+logger.info("sma test logging")
