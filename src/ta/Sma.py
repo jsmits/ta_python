@@ -1,7 +1,8 @@
-import logging
-import logging.config
+import Logger
 import os
 import datetime
+
+logger = Logger.logger(name='Sma')
 
 class Sma:
     
@@ -15,6 +16,10 @@ class Sma:
     BELOW = -1
     
     def __init__(self, parameter, *args, **kwargs):
+        
+        logger.info("(info) Sma imported")
+        logger.debug("(debug) Sma imported")
+        
         self.parameter = parameter
         self.row = 4 # close
         if args: self.row = args[0]
@@ -33,9 +38,7 @@ class Sma:
         self.signal = []
         self.status = []
         
-        self.logger = logging.getLogger(self.__class__.__name__)
-        try: logging.config.fileConfig(os.getcwd() + "/logging.conf")
-        except: logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s', filename=self.__class__.__name__+'.log', filemode='w')
+       
         
     def append(self, value):
         # check if valid input
@@ -57,23 +60,23 @@ class Sma:
     def _validate(self, value):
         if type(value) is tuple:
             if len(value) != 6:
-                self.logger.error('invalid input: tuple length should be 6; input: %s' % (value,)) 
+                logger.error('invalid input: tuple length should be 6; input: %s' % (value,)) 
                 return False
             elif not type(value[0]) is datetime.datetime:
-                self.logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (value[0],)) 
+                logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (value[0],)) 
                 return False
             else:
                 for i in range(1,6):
                     if type(value[i]) is int or type(value[i]) is float: continue
                     else:
-                        self.logger.error('invalid input: tuple element [%s] is not int or float; input: %s' % (i,value[i])) 
+                        logger.error('invalid input: tuple element [%s] is not int or float; input: %s' % (i,value[i])) 
                         return False
             if len(self.times) > 0 and value[0] < self.times[-1]:
-                self.logger.error('invalid input: tuple element [0] (datetime) should be equal or greater than previous: %s; input: %s' % (self.times[-1]), value[0]) 
+                logger.error('invalid input: tuple element [0] (datetime) should be equal or greater than previous: %s; input: %s' % (self.times[-1]), value[0]) 
                 return False
             return True
         else:
-            self.logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
+            logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
             return False
     
     def _calculate(self, value):
@@ -83,7 +86,7 @@ class Sma:
             try:    
                 outputvalue = sum(self.input[(len(self.input)-self.parameter):len(self.input)]) / self.parameter
             except:
-                self.logger.error('error calculating sma value')
+                logger.error('error calculating sma value')
                 self.input = self.input[:-1] # do something with this error, should never happen here
                 return False
         self.output.append(outputvalue)
@@ -182,7 +185,7 @@ if __name__=='__main__':
     d = datetime.datetime(2005, 1, 1, 9, 30)
     td = datetime.timedelta(0, 1)
     close = 12.20
-    nrofticks = int(60 * 60 * 6.5) # one market day with one tick every second
+    nrofticks = int(60 * 60 * 6.5) / 100 # one market day with one tick every second
     start = datetime.datetime.now()
     for x in xrange(nrofticks):
         c = (d, 12.34, 12.56, 12.11, close, 20192812)
@@ -195,4 +198,4 @@ if __name__=='__main__':
     print ind
     print
     dfsec = float("" + str(diff.seconds) + "." + str(diff.microseconds))
-    print "Inserting %s candles took %s seconds. %s candles per second." % (nrofticks, dfsec, nrofticks / dfsec)
+    logger.info("Inserting %s candles took %s seconds. %s candles per second." % (nrofticks, dfsec, nrofticks / dfsec))
