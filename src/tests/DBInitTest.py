@@ -1,7 +1,7 @@
 import MySQLdb
 import datetime
-from Sma import Sma
-from TimeFrame import TimeFrame
+from ta.Sma import Sma
+from ta.TimeFrame import TimeFrame
 
 class TAdb:
     def __init__(self, host='',user='', pwd=''):
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         # print d
         for i in range(4):
             tick = (d, candle[i+2])
-            tf.handleTick((tick[0], 5555, tick[1]))
+            tf.handleTick(tick[0], tick[1])
             d = d + datetime.timedelta(0, 15)
             
     print tf.times
