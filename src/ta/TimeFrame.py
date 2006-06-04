@@ -4,7 +4,7 @@ import datetime
 from CandleGenerator import CandleGenerator
 from Sma import Sma
 
-logger = Logger.logger(name='TimeFrame')
+logger = Logger.logger()
 
 class TimeFrame:
     
