@@ -1,9 +1,10 @@
-import logging
-import logging.config
+import Logger
 import os
 import datetime
 from CandleGenerator import CandleGenerator
 from Sma import Sma
+
+logger = Logger.logger()
 
 class TimeFrame:
     
@@ -20,14 +21,12 @@ class TimeFrame:
         self.lows = []
         self.closes = []
         self.volumes = []
-        
-        self.logger = logging.getLogger(self.__class__.__name__)
-        try: logging.config.fileConfig(os.getcwd() + "/logging.conf")
-        except: logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s', filename=self.__class__.__name__+'.log', filemode='w')
+   
+        logger.info("initializing timeframe")
         
         if kwargs.has_key('indicators'):
             if not type(kwargs['indicators']) is list:
-                self.logger.debug(self + "; indicators passed via keywords is not a list as required.")
+                logger.debug(self + "; indicators passed via keywords is not a list as required.")
             else: self.indicators = kwargs['indicators']
         
     def append(self, value):
@@ -50,37 +49,37 @@ class TimeFrame:
     def _validate(self, value):
         if type(value) is tuple:
             if len(value) != 6:
-                self.logger.error('invalid input: tuple length should be 6; input: %s' % (value,)) 
+                logger.error('invalid input: tuple length should be 6; input: %s' % (value,)) 
                 return False
             elif not type(value[0]) is datetime.datetime:
-                self.logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (value[0],)) 
+                logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (value[0],)) 
                 return False
             else:
                 for i in range(1,6):
                     if type(value[i]) is int or type(value[i]) is float: continue
                     else:
-                        self.logger.error('invalid input: tuple element [%s] is not int or float; input: %s' % (i,value[i])) 
+                        logger.error('invalid input: tuple element [%s] is not int or float; input: %s' % (i,value[i])) 
                         return False
             if len(self.times) > 0 and value[0] < self.times[-1]:
-                self.logger.error('invalid input: tuple element [0] (datetime) should be greater than previous: %s; input: %s' % (self.times[-1]), value[0]) 
+                logger.error('invalid input: tuple element [0] (datetime) should be greater than previous: %s; input: %s' % (self.times[-1]), value[0]) 
                 return False
             return True
         else:
-            self.logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
+            logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
             return False
         
     def _validateTick(self, time, last):
         if not time:
-            self.logger.error('invalid input: time is not supplied') 
+            logger.error('invalid input: time is not supplied') 
             return False
         if not last:
-            self.logger.error('invalid input: last is not supplied') 
+            logger.error('invalid input: last is not supplied') 
             return False
         if not type(time) is datetime.datetime:
-            self.logger.error('invalid input: time should be a datetime; input: %s' % (time,)) 
+            logger.error('invalid input: time should be a datetime; input: %s' % (time,)) 
             return False
         if not (type(last) is int or type(last) is float):
-            self.logger.error('invalid input: last should be an int or float; input: %s' % (last,)) 
+            logger.error('invalid input: last should be an int or float; input: %s' % (last,)) 
             return False    
         return True
         
@@ -135,7 +134,7 @@ if __name__=='__main__':
     d = datetime.datetime(2005, 1, 1, 15, 30)
     td = datetime.timedelta(0, 1)
     close = 12.20
-    nrofticks = int(60 * 60 * 6.5) # one market day with one tick every second
+    nrofticks = int(60 * 60 * 6.5) / 100 # one market day with one tick every second
     start = datetime.datetime.now()
     for x in xrange(nrofticks):
         c = (d, 12.34, 12.56, 12.11, close, 20192812)
