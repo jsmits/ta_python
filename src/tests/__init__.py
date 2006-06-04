@@ -1,4 +1,4 @@
-# tests/__init__.py
+#!/usr/bin/env python
 import sys
 
 sys.path.append("./")
