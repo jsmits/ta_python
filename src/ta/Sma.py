@@ -2,7 +2,7 @@ import Logger
 import os
 import datetime
 
-logger = Logger.logger(name='Sma')
+logger = Logger.logger()
 
 class Sma:
     
@@ -16,9 +16,6 @@ class Sma:
     BELOW = -1
     
     def __init__(self, parameter, *args, **kwargs):
-        
-        logger.info("(info) Sma imported")
-        logger.debug("(debug) Sma imported")
         
         self.parameter = parameter
         self.row = 4 # close
@@ -185,7 +182,7 @@ if __name__=='__main__':
     d = datetime.datetime(2005, 1, 1, 9, 30)
     td = datetime.timedelta(0, 1)
     close = 12.20
-    nrofticks = int(60 * 60 * 6.5) / 100 # one market day with one tick every second
+    nrofticks = int(60 * 60 * 6.5) # one market day with one tick every second
     start = datetime.datetime.now()
     for x in xrange(nrofticks):
         c = (d, 12.34, 12.56, 12.11, close, 20192812)
@@ -195,7 +192,6 @@ if __name__=='__main__':
         else: close = close - random.random()/2
     end = datetime.datetime.now()
     diff = end - start
-    print ind
-    print
+    logger.debug(ind)
     dfsec = float("" + str(diff.seconds) + "." + str(diff.microseconds))
     logger.info("Inserting %s candles took %s seconds. %s candles per second." % (nrofticks, dfsec, nrofticks / dfsec))
