@@ -31,11 +31,11 @@ class Indicator:
         # check for virtual candle
         if len(self.times) > 0 and self.times[-1] == candle[0]:
             self.handleVirtualCandle(candle)
-        if self._calculate(candle):
+        if self.calculate(candle):
             self.updateLists(candle)
             self.signals()
             
-    def _calculate(self, value):
+    def calculate(self, value):
         pass
     
     def updateLists(self, value):
