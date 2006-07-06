@@ -1,5 +1,4 @@
 import Logger
-import os
 import datetime
 from Indicator import *
 
@@ -20,7 +19,7 @@ class Sma(Indicator):
         
         Indicator.__init__(self)
         self.parameter = parameter
-        self.row = 4 # close
+        
         if args: self.row = args[0]
         
         # signal and status
@@ -36,6 +35,7 @@ class Sma(Indicator):
         else: return None
         
     def _calculate(self, value):
+        value = value[self.row]
         self.input.append(float(value))
         outputvalue = None
         if len(self.input) >= self.parameter:
@@ -47,18 +47,6 @@ class Sma(Indicator):
                 return False
         self.output.append(outputvalue)
         return True
-    
-    def getTimes(self):
-        source = self
-        return source.times
-        
-    def getRow(self, row):
-        source = self
-        if row == 1: return source.opens
-        if row == 2: return source.highs
-        if row == 3: return source.lows
-        if row == 4: return source.closes
-        if row == 5: return source.volumes
     
     def signals(self):
         if len(self.output) < 2:
