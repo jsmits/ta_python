@@ -34,7 +34,7 @@ class Sma(Indicator):
         if len(self.status) > 0: return self.status[-1]
         else: return None
         
-    def _calculate(self, value):
+    def calculate(self, value):
         value = value[self.row]
         self.input.append(float(value))
         outputvalue = None
@@ -84,41 +84,3 @@ class Sma(Indicator):
         return self.output[offset]
     def __getslice__(self, low, high):
         return self.output[low:high]
-
-if __name__=='__main__':
-    ind = Sma(3)
-    #input = [12.23, 12.34, 12.33, 12.35, 12.37, 12.24, 12.21, 12.11, 12.05, 11.85]
-    import datetime
-    import random
-    input = [(datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.20, 2010912),
-             (datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029),
-             (datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255),
-             (datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.24, 12.38, 8734251),
-             (datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.28, 12.57, 3637262),
-             (datetime.datetime(2006, 5, 8), 12.34, 12.56, 12.11, 12.20, 2010912),
-             (datetime.datetime(2006, 5, 9), 12.24, 12.48, 12.20, 12.22, 8791029),
-             (datetime.datetime(2006, 5, 10), 12.18, 12.20, 11.88, 12.16, 5434255),
-             (datetime.datetime(2006, 5, 11), 12.24, 12.68, 12.24, 12.38, 8734251),
-             (datetime.datetime(2006, 5, 12), 12.30, 12.88, 12.28, 12.57, 3637262),
-             (datetime.datetime(2006, 5, 15), 12.34, 12.56, 12.11, 12.20, 2010912),
-             (datetime.datetime(2006, 5, 16), 12.24, 12.48, 12.20, 12.22, 8791029),
-             (datetime.datetime(2006, 5, 17), 12.18, 12.20, 11.88, 12.16, 5434255),
-             (datetime.datetime(2006, 5, 18), 12.24, 12.68, 12.24, 12.38, 8734251),
-             (datetime.datetime(2006, 5, 19), 12.30, 12.88, 12.28, 12.57, 3637262),
-          ]
-    d = datetime.datetime(2005, 1, 1, 9, 30)
-    td = datetime.timedelta(0, 1)
-    close = 12.20
-    nrofticks = int(60 * 60 * 6.5) # one market day with one tick every second
-    start = datetime.datetime.now()
-    for x in xrange(nrofticks):
-        c = (d, 12.34, 12.56, 12.11, close, 20192812)
-        ind.append(c)
-        d = d + td
-        if (random.random() > 0.4): close = close + random.random()/2
-        else: close = close - random.random()/2
-    end = datetime.datetime.now()
-    diff = end - start
-    logger.debug(ind)
-    dfsec = float("" + str(diff.seconds) + "." + str(diff.microseconds))
-    logger.info("Inserting %s candles took %s seconds. %s candles per second." % (nrofticks, dfsec, nrofticks / dfsec))
