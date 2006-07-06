@@ -1,10 +1,11 @@
 import Logger
 import os
 import datetime
+from Indicator import *
 
 logger = Logger.logger()
 
-class Sma:
+class Sma(Indicator):
     
     # signal constants
     NO_SIGNAL = 0
@@ -17,35 +18,15 @@ class Sma:
     
     def __init__(self, parameter, *args, **kwargs):
         
+        Indicator.__init__(self)
         self.parameter = parameter
         self.row = 4 # close
         if args: self.row = args[0]
-        
-        self.times = []
-        self.opens = []
-        self.highs = []
-        self.lows = []
-        self.closes = []
-        self.volumes = []
-        
-        self.input = []
-        self.output = []
         
         # signal and status
         self.signal = []
         self.status = []
         
-       
-        
-    def append(self, value):
-        # check if valid input
-        if not self._validate(value): return False
-        # check for virtual candle
-        self.virtualCheck(value)
-        if self._calculate(value[self.row]):
-            self.updateLists(value)
-            self.signals()
-   
     def getSignal(self):
         if len(self.signal) > 0: return self.signal[-1]
         else: return None
@@ -54,28 +35,6 @@ class Sma:
         if len(self.status) > 0: return self.status[-1]
         else: return None
         
-    def _validate(self, value):
-        if type(value) is tuple:
-            if len(value) != 6:
-                logger.error('invalid input: tuple length should be 6; input: %s' % (value,)) 
-                return False
-            elif not type(value[0]) is datetime.datetime:
-                logger.error('invalid input: tuple element [0] should be a datetime; input: %s' % (value[0],)) 
-                return False
-            else:
-                for i in range(1,6):
-                    if type(value[i]) is int or type(value[i]) is float: continue
-                    else:
-                        logger.error('invalid input: tuple element [%s] is not int or float; input: %s' % (i,value[i])) 
-                        return False
-            if len(self.times) > 0 and value[0] < self.times[-1]:
-                logger.error('invalid input: tuple element [0] (datetime) should be equal or greater than previous: %s; input: %s' % (self.times[-1]), value[0]) 
-                return False
-            return True
-        else:
-            logger.error('invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (value,)) 
-            return False
-    
     def _calculate(self, value):
         self.input.append(float(value))
         outputvalue = None
@@ -101,14 +60,6 @@ class Sma:
         if row == 4: return source.closes
         if row == 5: return source.volumes
     
-    def updateLists(self, value):
-        self.times.append(value[0])   # datetime
-        self.opens.append(value[1])   # open
-        self.highs.append(value[2])   # high
-        self.lows.append(value[3])    # low
-        self.closes.append(value[4])  # close
-        self.volumes.append(value[5]) # volume
-    
     def signals(self):
         if len(self.output) < 2:
             self.signal.append(self.NO_SIGNAL)
@@ -130,18 +81,6 @@ class Sma:
             if self.input[-1] > self.output[-1]: self.status.append(self.ABOVE)
             if self.input[-1] == self.output[-1]: self.status.append(self.EQUAL)
             if self.input[-1] < self.output[-1]: self.status.append(self.BELOW)
-    
-    def virtualCheck(self, value):
-         if len(self.times) > 0 and self.times[-1] == value[0]:
-            # now revert back to previous state, remove previous virtual candle
-            self.times = self.times[:-1]
-            self.opens = self.opens[:-1]
-            self.highs = self.highs[:-1]
-            self.lows = self.lows[:-1]
-            self.closes = self.closes[:-1]
-            self.volumes = self.volumes[:-1]
-            self.input = self.input[:-1]
-            self.output = self.output[:-1]
     
     # overloads
     def __str__(self):
