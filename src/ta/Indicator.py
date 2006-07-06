@@ -12,6 +12,45 @@ class Indicator:
         self.input = []
         self.output = []
         
+        self.row = 4 # close
+        
+    def handleVirtualCandle(self, value):
+        # revert back to previous state, remove previous virtual candle
+        self.times = self.times[:-1]
+        self.opens = self.opens[:-1]
+        self.highs = self.highs[:-1]
+        self.lows = self.lows[:-1]
+        self.closes = self.closes[:-1]
+        self.volumes = self.volumes[:-1]
+        self.input = self.input[:-1]
+        self.output = self.output[:-1]
+         
+    def append(self, candle):
+        # check if valid input
+        validateInput(candle, self.times)
+        # check for virtual candle
+        if len(self.times) > 0 and self.times[-1] == candle[0]:
+            self.handleVirtualCandle(candle)
+        if self._calculate(candle):
+            self.updateLists(candle)
+            self.signals()
+            
+    def _calculate(self, value):
+        pass
+    
+    def updateLists(self, value):
+        self.times.append(value[0])   # datetime
+        self.opens.append(value[1])   # open
+        self.highs.append(value[2])   # high
+        self.lows.append(value[3])    # low
+        self.closes.append(value[4])  # close
+        self.volumes.append(value[5]) # volume
+        
+    def signals(self):
+        pass
+        
+    
+        
 # define exceptions
 class IndicatorError(Exception): pass
 class NotTupleError(IndicatorError): pass
