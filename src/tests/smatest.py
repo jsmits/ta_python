@@ -79,7 +79,10 @@ class AppendBadInput(unittest.TestCase):
         s = Sma(4)
         testInput = inputValues[:8]
         for c in testInput:
-            s.append(c)
+            try:
+                s.append(c)
+            except Signal, obj:
+                pass
         self.assertRaises(InvalidDateTimeError, s.append, inputValues[4])
         
     def testIntegerDateTime(self):
@@ -87,3 +90,44 @@ class AppendBadInput(unittest.TestCase):
         s = Sma(4)
         c = (1562516271, 12.34, 12.56, 12.11, 12.20, 2010912)
         self.assertRaises(InvalidDateTimeError, s.append, c)
+        
+    def testNegativeLow(self):
+        """append should fail with negative low value"""
+        s = Sma(4)
+        c = (datetime.datetime(2006, 5, 19), 12.34, 12.56, -12.11, 12.20, 2010912)
+        self.assertRaises(InvalidCandleStickError, s.append, c)
+        
+    def testHighLowMixUp(self):
+        """append should fail with high lower than low"""
+        s = Sma(4)
+        c = (datetime.datetime(2006, 5, 19), 12.34, 12.11, 12.56, 12.20, 2010912)
+        self.assertRaises(InvalidCandleStickError, s.append, c)
+        
+    def testOpenHigherThanHigh(self):
+        """append should fail with open higher than high"""
+        s = Sma(4)
+        c = (datetime.datetime(2006, 5, 19), 12.60, 12.56, 12.11, 12.20, 2010912)
+        self.assertRaises(InvalidCandleStickError, s.append, c)
+    
+    def testCloseLowerThanLow(self):
+        """append should fail with close lower than low"""
+        s = Sma(4)
+        c = (datetime.datetime(2006, 5, 19), 12.60, 12.56, 12.11, 12.09, 2010912)
+        self.assertRaises(InvalidCandleStickError, s.append, c)
+        
+class KnownValues(unittest.TestCase):
+    def testOutputKnownValues(self):
+        """sma calculation should give known result with known input
+           results are rounded by str representation of floats
+        """
+        s = Sma(4)
+        knownvalues = [None, None, None, 12.24, 12.3325, 12.3275, 12.3425, 12.2875, 12.24, 12.3325, 12.3275, 12.3425, 12.2875, 12.24, 12.3325]
+        for c in inputValues:
+            try:
+                s.append(c)
+            except Signal, obj:
+                pass
+        for i in range(len(s.output)):
+            self.assertEqual(str(s.output[i]), str(knownvalues[i]))
+            
+        
