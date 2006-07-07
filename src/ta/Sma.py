@@ -1,38 +1,24 @@
-import Logger
+#import Logger
 import datetime
 from Indicator import *
 
-logger = Logger.logger()
+#logger = Logger.logger()
 
 class Sma(Indicator):
-    
     # signal constants
     NO_SIGNAL = 0
     CO = 1
-    
     # status constants
     ABOVE = 1
     EQUAL = 0
     BELOW = -1
     
     def __init__(self, parameter, *args, **kwargs):
-        
-        Indicator.__init__(self)
-        self.parameter = parameter
-        
-        if args: self.row = args[0]
-        
-        # signal and status
+        Indicator.__init__(self, parameter, *args, **kwargs)
+        self.input = []
+        self.output = []
         self.signal = []
         self.status = []
-        
-    def getSignal(self):
-        if len(self.signal) > 0: return self.signal[-1]
-        else: return None
-        
-    def getStatus(self):
-        if len(self.status) > 0: return self.status[-1]
-        else: return None
         
     def calculate(self, value):
         value = value[self.row]
@@ -42,11 +28,15 @@ class Sma(Indicator):
             try:    
                 outputvalue = sum(self.input[(len(self.input)-self.parameter):len(self.input)]) / self.parameter
             except:
-                logger.error('error calculating sma value')
-                self.input = self.input[:-1] # do something with this error, should never happen here
-                return False
+                self.input = self.input[:-1]
+                raise IndicatorError, 'error calculating sma value; should never happen here'
         self.output.append(outputvalue)
-        return True
+        
+    def revertToPreviousState(self):
+        # remove previous virtual candle
+        Indicator.revertToPreviousState(self)
+        self.input = self.input[:-1]
+        self.output = self.output[:-1]
     
     def signals(self):
         if len(self.output) < 2:
@@ -59,10 +49,12 @@ class Sma(Indicator):
         elif (self.input[-1] > self.output[-1]) and (self.input[-2] < self.output[-2]):
             self.signal.append(self.CO)
             self.status.append(self.ABOVE)
+            raise Signal, self
         # CO BELOW
         elif (self.input[-1] < self.output[-1]) and (self.input[-2] > self.output[-2]):
             self.signal.append(self.CO)
             self.status.append(self.BELOW)
+            raise Signal, self
         # NO_SIGNAL
         else:
             self.signal.append(self.NO_SIGNAL)
@@ -70,7 +62,15 @@ class Sma(Indicator):
             if self.input[-1] == self.output[-1]: self.status.append(self.EQUAL)
             if self.input[-1] < self.output[-1]: self.status.append(self.BELOW)
     
-    # overloads
+    def getSignal(self):
+        if len(self.signal) > 0: return self.signal[-1]
+        else: return None
+        
+    def getStatus(self):
+        if len(self.status) > 0: return self.status[-1]
+        else: return None
+    
+    # override functions
     def __str__(self):
         string = ''
         for i in xrange(len(self.input)):
