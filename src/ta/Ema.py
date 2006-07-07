@@ -25,7 +25,9 @@ class Ema(Indicator):
                 self.output.append(None)
                 return
             else:
-                 raise IndicatorError, 'invalid input; None appended after real values in list'
+                raise IndicatorError, 'invalid input; None appended after real values in list'
+        # need to know if it is a valid candle
+        # put validateInput code here and get it out of Indicator append, same in Sma
         if self.firstfilledindex != 0 and not self.firstfilledindex:
             self.firstfilledindex = len(self.output)
         Indicator.append(self, candle)
