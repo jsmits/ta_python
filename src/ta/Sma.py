@@ -47,6 +47,8 @@ class Sma(Indicator):
     def validateParameter(self, parameter):
         if type(parameter) is not int:
             raise IndicatorError, 'invalid parameter for initializing Sma instance, should be an integer; input: %s' % (self.parameter, )
+        if parameter < 1:
+            raise IndicatorError, 'invalid parameter for initializing Sma instance, should be an int > 0; input: %s' % (self.parameter, )
     
     def signals(self):
         if len(self.output) < 2:
