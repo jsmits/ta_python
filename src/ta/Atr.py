@@ -1,56 +1,23 @@
-import logging
-import logging.config
+from Indicator import *
 
-class Atr:
-    def __init__(self, parameter, *args):
-        self.parameter = parameter
-        self.highs = []
-        self.lows = []
-        self.closes = []
+class Atr(Indicator):
+    """ calculates Average True Range indicator
+            input:      parameter = integer """
+    def __init__(self, parameter, *args, **kwargs):
+        Indicator.__init__(self, parameter, *args, **kwargs)
+   
         self.tr = []
         self.output = []
         
-        logging.config.fileConfig("logging.conf")
-        self.logger = logging.getLogger("Indicator")
+    def calculate(self, candle):
         
-    def append(self, value):
-        # check if valid input
-        if not self._validate(value): return
-        if self._calculate(value): return self.output[-1]
+        high = float(candle[2])
+        low = float(candle[3])
         
-    def _validate(self, value):
-        if not type(value) is tuple:
-            self.logger.debug('invalid input: %s; should be tuple' % value) 
-            return False
-        else:
-            try:
-                if not type(value[2]) is float and not type(value[2]) is int:
-                    self.logger.debug('invalid input: %s; high should be float or int' % value[2])
-                    return False
-                if not type(value[3]) is float and not type(value[3]) is int:
-                    self.logger.debug('invalid input: %s; low should be float or int' % value[3])
-                    return False
-                if not type(value[4]) is float and not type(value[4]) is int:
-                    self.logger.debug('invalid input: %s; close should be float or int' % value[4])
-                    return False
-            except:
-                self.logger.debug('error validating high, low, close data from %s' % value)
-                return False
-        return True
-        
-    def _calculate(self, value):
-        high = float(value[2])
-        low = float(value[3])
-        close = float(value[4])
-        
-        self.highs.append(high)
-        self.lows.append(low)
-        self.closes.append(close)
-        
-        if len(self.highs) == 1:
+        if len(self.highs) == 0:
             tr = high - low # (high - low) = initial tr
         else:
-            pclose = self.closes[-2]
+            pclose = self.closes[-1]
             tr = max(high - low, abs(high - pclose), abs(low - pclose))
         self.tr.append(tr)
         
@@ -61,16 +28,27 @@ class Atr:
                 atr = ((patr * (self.parameter - 1)) + self.tr[-1]) / self.parameter
                 outputvalue = atr
             except:
-                self.logger.debug('error calculating atr value; reverting input data back to previous state')
-                self.highs = self.highs[:-1]
-                self.lows = self.lows[:-1]
-                self.closes = self.closes[:-1]
                 self.tr = self.tr[:-1]
-                return False
+                raise IndicatorError, 'error calculating atr value; reverting tr data back to previous state'
         self.output.append(outputvalue)
-        return True
+        
+    def revertToPreviousState(self):
+        # remove previous virtual candle
+        Indicator.revertToPreviousState(self)
+        self.tr = self.tr[:-1]
+        self.output = self.output[:-1]
+        
+    def validateParameter(self, parameter):
+        if type(parameter) is not int:
+            raise IndicatorError, 'invalid parameter for initializing Atr instance, should be an integer; input: %s' % (self.parameter, )
+        if parameter < 1:
+            raise IndicatorError, 'invalid parameter for initializing Atr instance, should be an int > 0; input: %s' % (self.parameter, )
     
-    # overloads
+    def getAtr(self):
+        if len(self.output) > 0: return self.output[-1]
+        else: return None
+    
+    # overrided functions
     def __str__(self):
         string = ''
         for i in xrange(len(self.highs)):
@@ -87,7 +65,6 @@ class Atr:
 
 if __name__=='__main__':
     ind = Atr(4)
-    import datetime
     input = [(datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.20, 2010912),
              (datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029),
              (datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255),
