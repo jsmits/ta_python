@@ -28,6 +28,23 @@ inputValues = [(datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.20, 20109
              (datetime.datetime(2006, 5, 19), 12.30, 12.88, 12.28, 12.57, 3637262),
           ]
 
+class BadInitializationInput(unittest.TestCase):
+    def testNoneParameter(self):
+        """ initializing should fail with None parameter """
+        self.assertRaises(IndicatorError, Sma, None)
+        
+    def testTupleParameter(self):
+        """ initializing should fail with tuple parameter """
+        self.assertRaises(IndicatorError, Sma, (4, ))
+        
+    def testStringParameter(self):
+        """ initializing should fail with str parameter """
+        self.assertRaises(IndicatorError, Sma, '4')
+        
+    def testEmptyParameter(self):
+        """ initializing should raise TypeError with empty parameter """
+        self.assertRaises(TypeError, Sma)
+
 class AppendBadInput(unittest.TestCase):
     def testInteger(self):
         """append should fail with integer input"""
@@ -130,4 +147,25 @@ class KnownValues(unittest.TestCase):
         for i in range(len(s.output)):
             self.assertEqual(str(s.output[i]), str(knownvalues[i]))
             
+class KnownSignals(unittest.TestCase):
+    def testCrossOverUp(self):
+        """ test whether a Signal is raised after an upper cross over """
+        s = Sma(3)
+        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.24, 2010912))
+        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029))
+        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
+        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.14, 8734251))
+        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.12, 3637262))
+        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 12.11, 12.78, 2010912))
+          
+    def testCrossOverDown(self):
+        """ test whether a Signal is raised after an down cross over """
+        s = Sma(3)
+        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.12, 2010912))
+        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.10, 12.14, 8791029))
+        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
+        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.18, 8734251))
+        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.22, 3637262))
+        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 11.69, 11.78, 2010912))
+           
         
