@@ -5,6 +5,10 @@ from Indicator import *
 #logger = Logger.logger()
 
 class Sma(Indicator):
+    """ calculates Smooth Moving Average (SMA) indicator class
+            input:      data        = list or tuple of float or integer values
+                        parameter   = single integer
+            returns:    list of sma indicator with same length as data """
     # signal constants
     NO_SIGNAL = 0
     CO = 1
@@ -20,8 +24,8 @@ class Sma(Indicator):
         self.signal = []
         self.status = []
         
-    def calculate(self, value):
-        value = value[self.row]
+    def calculate(self, candle):
+        value = candle[self.row]
         self.input.append(float(value))
         outputvalue = None
         if len(self.input) >= self.parameter:
@@ -37,6 +41,8 @@ class Sma(Indicator):
         Indicator.revertToPreviousState(self)
         self.input = self.input[:-1]
         self.output = self.output[:-1]
+        self.signal = self.signal[:-1]
+        self.status = self.status[:-1]
     
     def signals(self):
         if len(self.output) < 2:
