@@ -2,10 +2,10 @@ import datetime
 
 # define exceptions
 class IndicatorError(Exception): pass
-class NotTupleError(IndicatorError): pass
-class NotFloatError(IndicatorError): pass
 class InvalidCandleStickError(IndicatorError): pass
-class InvalidDateTimeError(IndicatorError): pass
+class NotTupleError(InvalidCandleStickError): pass
+class NotFloatError(InvalidCandleStickError): pass
+class InvalidDateTimeError(InvalidCandleStickError): pass
 
 #signal
 class Signal:
@@ -43,8 +43,6 @@ class Indicator:
         self.lows = self.lows[:-1]
         self.closes = self.closes[:-1]
         self.volumes = self.volumes[:-1]
-        self.input = self.input[:-1]
-        self.output = self.output[:-1]
             
     def calculate(self, candle):
         pass
@@ -78,7 +76,7 @@ def validateInput(candle, times):
         raise InvalidCandleStickError, 'invalid input: open (%s) is outside high (%s) - low (%s) range' % (candle[1], candle[2], candle[3])
     if candle[4] > candle[2] or candle[4] < candle[3]:
         raise InvalidCandleStickError, 'invalid input: close (%s) is outside high (%s) - low (%s) range' % (candle[4], candle[2], candle[3])
-    if len(times) > 0 and candle[0] < times[-1]:
+    if len(times) > 0 and times[-1] != None and candle[0] < times[-1]:
         raise InvalidDateTimeError, 'invalid input: tuple element [0] (datetime) should be equal or greater than previous: %s; input: %s' % (times[-1], candle[0])  
     if type(candle[5]) is not int:
         raise InvalidCandleStickError, 'invalid input: volume should be int; input: %s' % candle[5]
