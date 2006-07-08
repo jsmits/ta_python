@@ -1,4 +1,4 @@
-"""Unit test for Sma.py
+"""Unit test for Ema.py
 
 """
 
