@@ -46,7 +46,15 @@ class Macd(Indicator):
         self.l_ema.revertToPreviousState()
         self.ema_macd.revertToPreviousState()
     
-    # overloads
+    def validateParameter(self, parameter):
+        if type(parameter) is not tuple:
+            raise IndicatorError, 'invalid parameter for initializing Macd instance, should be an tuple; input: %s' % (self.parameter, )
+        if len(parameter) != 3:
+            raise IndicatorError, 'invalid parameter for initializing Macd instance, should be an tuple with length 3 (e.g. 4,8,5); input: %s' % (self.parameter, )
+        if parameter[0] >= parameter[1]:
+            raise IndicatorError, 'invalid parameter for initializing Macd instance, should be an tuple with length 3 (e.g. 4,8,5) and parameter 1 should be smaller than parameter 2; input: %s' % (self.parameter, )
+    
+    # overrided functions
     def __str__(self):
         string = ''
         for i in xrange(len(self.input)):
