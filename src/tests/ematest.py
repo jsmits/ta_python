@@ -41,6 +41,10 @@ class BadInitializationInput(unittest.TestCase):
         """ initializing should fail with str parameter """
         self.assertRaises(IndicatorError, Ema, '4')
         
+    def testNegativeIntParameter(self):
+        """ initializing should fail with negative int parameter """
+        self.assertRaises(IndicatorError, Ema, -1)
+        
     def testEmptyParameter(self):
         """ initializing should raise TypeError with empty parameter """
         self.assertRaises(TypeError, Ema)
