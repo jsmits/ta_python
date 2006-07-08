@@ -15,6 +15,7 @@ class Signal:
 class Indicator:
     def __init__(self, parameter, *args, **kwargs):
         self.parameter = parameter
+        self.validateParameter(self.parameter)
         self.row = 4 # close
         if args: self.row = args[0]
         
@@ -45,6 +46,9 @@ class Indicator:
         self.volumes = self.volumes[:-1]
             
     def calculate(self, candle):
+        pass
+    
+    def validateParameter(self, parameter):
         pass
     
     def updateLists(self, candle):
