@@ -1,16 +1,16 @@
-import logging
-import logging.config
+from Indicator import *
 
-class Tops:
+class Tops(Indicator):
     """ calculates tops
         coding:     0 - no top 
                     1 - L; 11 - LL; 21 - EL; 31 - HL
                     2 - H; 12 - LH; 22 - EH; 32 - HH
        """
-    def __init__(self, *args):
-        self.highs = []
-        self.lows = []
-        self.closes = []
+    def __init__(self, *args, **kwargs):
+        Indicator.__init__(self, None, *args, **kwargs)
+       
+        self.inputhigh = []
+        self.inputlow = []
         self.output = []
         
         self.mark = 0, 0
@@ -18,42 +18,41 @@ class Tops:
         self.pl = [] # previous low list
         self.last_fixed = None 
         
-        logging.config.fileConfig("../logging.conf")
-        self.logger = logging.getLogger("Indicator")
+        # for reverting back to previous state in case of a virtual candle
+        self.previousoutput = []
+        self.previousmark = 0, 0
+        self.previousph = [] # previous high list
+        self.previouspl = [] # previous low list
+        self.previouslast_fixed = None 
         
-    def append(self, value):
-        # check if valid input
-        if not self._validate(value): return
-        if self._calculate(value): return self.output[-1]
+    def calculate(self, candle):
+        # copy current state to previous state
+        self.previousoutput = list(self.output)
+        self.previousmark = self.mark
+        self.previousph = list(self.ph)
+        self.previouspl = list(self.pl)
+        self.previouslast_fixed = self.last_fixed
         
-    def _validate(self, value):
-        if not type(value) is tuple:
-            self.logger.debug('invalid input: %s; should be a candle data tuple' % value) 
-            return False
-        else: 
-            return True # TODO check high and low
+        high = float(candle[2])
+        low = float(candle[3])
+        self.inputhigh.append(high)
+        self.inputlow.append(low)
         
-    def _calculate(self, value):
-        high = float(value[2])
-        low = float(value[3])
-        self.highs.append(high)
-        self.lows.append(low)
-        
-        if len(self.highs)==0:
+        if len(self.inputhigh)==0:
             self.output.append(0)
-            return True
+            return
         
-        if high <= self.highs[self.mark[0]] and low >= self.lows[self.mark[0]]: # inside  bar
+        if high <= self.inputhigh[self.mark[0]] and low >= self.inputlow[self.mark[0]]: # inside  bar
             self.output.append(0)
-            return True
-        if high  > self.highs[self.mark[0]] and low  < self.lows[self.mark[0]]: # outside bar
+            return
+        if high  > self.inputhigh[self.mark[0]] and low  < self.inputlow[self.mark[0]]: # outside bar
             if self.ph == [] and self.pl == []:
                 self.output.append(0)
                 self.mark = len(self.output)-1, 0
             else:
                 self.output[self.mark[0]] = 0
                 for j in reversed(range(len(self.output)-1)):
-                    if self.highs[j] > high or self.lows[j] < low: # first non-inclusive bar
+                    if self.inputhigh[j] > high or self.inputlow[j] < low: # first non-inclusive bar
                         break
                 count = 0
                 for k in range(j+1, len(self.output)-1): # checking for inbetween tops
@@ -81,14 +80,14 @@ class Tops:
                             self.mark = len(self.output)-1, 0 # current outside bar has become indifferent
                 if count == 0:
                     self.mark = len(self.output)-1, self.mark[1] # set same signal to current outside bar
-            return True
-        if high  > self.highs[self.mark[0]] and low >= self.lows[self.mark[0]]: # upbar
+            return
+        if high  > self.inputhigh[self.mark[0]] and low >= self.inputlow[self.mark[0]]: # upbar
             if self.mark[1]  < 2: # upbar with previous indifferent or low mark
                 if self.pl == []: self.output[self.mark[0]] = 1 # L
                 else:
-                    if    self.lows[self.mark[0]]  <   self.lows[self.pl[-1]]: self.output[self.mark[0]] = 11 # LL
-                    elif  self.lows[self.mark[0]] ==   self.lows[self.pl[-1]]: self.output[self.mark[0]] = 21 # EL
-                    elif  self.lows[self.mark[0]]  >   self.lows[self.pl[-1]]: self.output[self.mark[0]] = 31 # HL
+                    if    self.inputlow[self.mark[0]]  <   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 11 # LL
+                    elif  self.inputlow[self.mark[0]] ==   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 21 # EL
+                    elif  self.inputlow[self.mark[0]]  >   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 31 # HL
                 self.pl.append(self.mark[0])
                 self.last_fixed = self.mark[0], 1
                 self.mark = len(self.output), 2
@@ -97,14 +96,14 @@ class Tops:
                 self.output[self.mark[0]] = 0 # reset previous mark
                 self.mark = len(self.output), 2
                 self.output.append(0)
-            return True
-        if high <= self.highs[self.mark[0]] and low  < self.lows[self.mark[0]]: # downbar
+            return
+        if high <= self.inputhigh[self.mark[0]] and low  < self.inputlow[self.mark[0]]: # downbar
             if self.mark[1] != 1: # downbar with previous indifferent or high mark
                 if self.ph == []: self.output[self.mark[0]] = 2 # H
                 else:
-                    if   self.highs[self.mark[0]]  < self.highs[self.ph[-1]]: self.output[self.mark[0]] = 12 # LH
-                    elif self.highs[self.mark[0]] == self.highs[self.ph[-1]]: self.output[self.mark[0]] = 22 # EH
-                    elif self.highs[self.mark[0]]  > self.highs[self.ph[-1]]: self.output[self.mark[0]] = 32 # HH
+                    if   self.inputhigh[self.mark[0]]  < self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 12 # LH
+                    elif self.inputhigh[self.mark[0]] == self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 22 # EH
+                    elif self.inputhigh[self.mark[0]]  > self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 32 # HH
                 self.ph.append(self.mark[0])
                 self.last_fixed = self.mark[0], 2
                 self.mark = len(self.output), 1
@@ -113,13 +112,27 @@ class Tops:
                 self.output[self.mark[0]] = 0 # reset previous mark
                 self.mark = len(self.output), 1
                 self.output.append(0)
-            return True
-        
+            return
+    
+    # to be made
+    def revertToPreviousState(self):
+        # remove previous virtual candle
+        Indicator.revertToPreviousState(self)
+        self.inputlow = self.inputlow[:-1]
+        self.inputhigh = self.inputhigh[:-1]
+        self.output = list(self.previousoutput)
+        self.mark = self.previousmark
+        self.ph = list(self.previousph)
+        self.pl = list(self.previouspl)
+        self.last_fixed = self.previouslast_fixed
+        #self.signal = self.signal[:-1]
+        #self.status = self.status[:-1]    
+    
     # overloads
     def __str__(self):
         string = ''
-        for i in xrange(len(self.highs)):
-            string+='%s\t%s\t%s\t%s\n' % (i+1, self.highs[i], self.lows[i], self.output[i])
+        for i in xrange(len(self.inputhigh)):
+            string+='%s\t%s\t%s\t%s\n' % (i+1, self.inputhigh[i], self.inputlow[i], self.output[i])
         return 'Tops():\n%s' % (string)
     def __repr__(self):
         return 'Tops()'
@@ -142,6 +155,7 @@ if __name__=='__main__':
              (datetime.datetime(2006, 5, 8), 12.34, 12.56, 12.11, 12.20, 2010912),
              (datetime.datetime(2006, 5, 9), 12.24, 12.48, 12.20, 12.22, 8791029),
              (datetime.datetime(2006, 5, 10), 12.18, 12.20, 11.88, 12.16, 5434255),
+             (datetime.datetime(2006, 5, 10), 12.21, 12.40, 12.21, 12.21, 5434255),
              (datetime.datetime(2006, 5, 11), 12.24, 12.68, 12.24, 12.38, 8734251),
              (datetime.datetime(2006, 5, 12), 12.30, 12.88, 12.28, 12.57, 3637262),
              (datetime.datetime(2006, 5, 15), 12.34, 12.56, 12.11, 12.20, 2010912),
