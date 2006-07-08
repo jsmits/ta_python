@@ -44,6 +44,11 @@ class Ema(Indicator):
         self.signal = self.signal[:-1]
         self.status = self.status[:-1]
     
+    def validateParameter(self, parameter):
+        if type(parameter) is not int:
+            raise IndicatorError, 'invalid parameter for initializing Ema instance, should be an integer; input: %s' % (self.parameter, )
+    
+    
     def signals(self):
         if len(self.output) < 2:
             self.signal.append(self.NO_SIGNAL)
