@@ -9,6 +9,7 @@ __copyright__ = "Copyright (c) 2006 Sander Smits"
 __license__ = "Python"
 
 from ta.Macd import *
+from ta.Ema import *
 import unittest
 
 inputValues = [(datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.20, 2010912),
@@ -141,39 +142,34 @@ class AppendBadInput(unittest.TestCase):
         self.assertRaises(InvalidCandleStickError, s.append, c)
         
 class KnownValues(unittest.TestCase):
-    def testOutputKnownValues(self):
+    def testOutputKnownMacdValues(self):
         """Macd calculation should give known result with known input
            results are rounded by str representation of floats
         """
-        s = Macd((3,6,3))
-        knownvalues = [None, None, None, 12.24, 12.372, 12.3032, 12.26992, 12.225952]
-        for c in inputValues[:8]:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+        parameter = (3,6,3)
+        s = Macd(parameter)
+        ema1 = Ema(parameter[0])
+        ema2 = Ema(parameter[1])
+        emamacd = EmaMacd(parameter[2])
+        
+        for c in inputValues:
+            try: s.append(c)
+            except Signal, obj: pass
+            try: ema1.append(c)
+            except Signal, obj: pass
+            try: ema2.append(c)
+            except Signal, obj: pass
+            
+        knownvalues = []
+        for e in range(len(ema1.output)):
+            if ema2.output[e] == None:
+                knownvalues.append(None)
+                continue
+            else:
+                knownvalues.append(ema1.output[e] - ema2.output[e])
+                
         for i in range(len(s.output)):
             self.assertEqual(str(s.output[i]), str(knownvalues[i]))
             
 class KnownSignals(unittest.TestCase):
-    def testCrossOverUp(self):
-        """ test whether a Signal is raised after an upper cross over """
-        s = Macd((3,6,3))
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.24, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.14, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.12, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 12.11, 12.78, 2010912))
-          
-    def testCrossOverDown(self):
-        """ test whether a Signal is raised after an down cross over """
-        s = Macd((3,6,3))
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.12, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.10, 12.14, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.18, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.22, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 11.69, 11.78, 2010912))
-           
-        
+    pass
