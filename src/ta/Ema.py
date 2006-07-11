@@ -3,20 +3,11 @@ from Indicator import *
 class Ema(Indicator):
     """ Exponential Moving Average (EMA) indicator class
             formula:    ((close - prev) * K) + prev """
-    # signal constants
-    NO_SIGNAL = 0
-    CO = 1
-    # status constants
-    ABOVE = 1
-    EQUAL = 0
-    BELOW = -1
     
     def __init__(self, parameter, *args, **kwargs):
         Indicator.__init__(self, parameter, *args, **kwargs)
         self.input = []
         self.output = []
-        self.signal = []
-        self.status = []
         
     def calculate(self, candle):
         value = candle[self.row]
@@ -41,8 +32,6 @@ class Ema(Indicator):
         Indicator.revertToPreviousState(self)
         self.input = self.input[:-1]
         self.output = self.output[:-1]
-        self.signal = self.signal[:-1]
-        self.status = self.status[:-1]
     
     def validateParameter(self, parameter):
         if type(parameter) is not int:
@@ -50,43 +39,11 @@ class Ema(Indicator):
         if parameter < 1:
             raise IndicatorError, 'invalid parameter for initializing Ema instance, should be an int > 0; input: %s' % (self.parameter, )
     
-    def signals(self):
-        if len(self.output) < 2:
-            self.signal.append(self.NO_SIGNAL)
-            self.status.append(None)
-        elif self.output[-1] == None or self.output[-2] == None:
-            self.signal.append(self.NO_SIGNAL)
-            self.status.append(None)
-        # CO ABOVE
-        elif (self.input[-1] > self.output[-1]) and (self.input[-2] < self.output[-2]):
-            self.signal.append(self.CO)
-            self.status.append(self.ABOVE)
-            raise Signal, self
-        # CO BELOW
-        elif (self.input[-1] < self.output[-1]) and (self.input[-2] > self.output[-2]):
-            self.signal.append(self.CO)
-            self.status.append(self.BELOW)
-            raise Signal, self
-        # NO_SIGNAL
-        else:
-            self.signal.append(self.NO_SIGNAL)
-            if self.input[-1] > self.output[-1]: self.status.append(self.ABOVE)
-            if self.input[-1] == self.output[-1]: self.status.append(self.EQUAL)
-            if self.input[-1] < self.output[-1]: self.status.append(self.BELOW)
-    
-    def getSignal(self):
-        if len(self.signal) > 0: return self.signal[-1]
-        else: return None
-        
-    def getStatus(self):
-        if len(self.status) > 0: return self.status[-1]
-        else: return None
-    
     # override functions
     def __str__(self):
         string = ''
         for i in xrange(len(self.input)):
-            string+='%s\t%s\t%s\t%s\t%s\n' % (i+1, self.times[i], self.input[i], self.output[i], self.signal[i])
+            string+='%s\t%s\t%s\t%s\n' % (i+1, self.times[i], self.input[i], self.output[i])
         return 'Ema(%s):\n%s' % (self.parameter, string)
     def __repr__(self):
         return 'Ema(%s)' % self.parameter
@@ -211,19 +168,13 @@ if __name__=='__main__':
              (datetime.datetime(2006, 5, 19), 12.30, 12.88, 12.28, 12.57, 3637262),
           ]
     for i in input:
-        try:
-            ind.append(i)
-        except Signal:
-            pass
+        ind.append(i)
     print ind
     
     ind = EmaMacd(6)
     input = [None]*4 + input
     for i in input:
-        try:
-            ind.append(i)
-        except Signal:
-            pass
+        ind.append(i)
     print ind
     
     
