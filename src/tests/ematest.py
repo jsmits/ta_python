@@ -48,93 +48,6 @@ class BadInitializationInput(unittest.TestCase):
     def testEmptyParameter(self):
         """ initializing should raise TypeError with empty parameter """
         self.assertRaises(TypeError, Ema)
-
-class AppendBadInput(unittest.TestCase):
-    def testInteger(self):
-        """append should fail with integer input"""
-        s = Ema(4)
-        self.assertRaises(NotTupleError, s.append, 4000)
-        
-    def testString(self):
-        """append should fail with string input"""
-        s = Ema(4)
-        self.assertRaises(NotTupleError, s.append, "dummy")
-        
-    def testFloat(self):
-        """append should fail with float input"""
-        s = Ema(4)
-        self.assertRaises(NotTupleError, s.append, 12.432)
-        
-    def testFloatVolume(self):
-        """append should fail with float value for volume"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), 12.34, 12.56, 12.11, 12.20, 2010912.25)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-     
-    def testStringOpen(self):
-        """append should fail with string value for open"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), "dummy", 12.56, 12.11, 12.20, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-    
-    def testNoneOpen(self):
-        """append should fail with None value for open"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), None, 12.56, 12.11, 12.20, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-        
-    def testTupleTooLarge(self):
-        """append should fail with tuple that has a length bigger than 6"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), None, 12.56, 12.11, 12.20, 2010912, 1425)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-        
-    def testTupleTooSmall(self):
-        """append should fail with tuple that has a length smaller than 6"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), None, 12.56, 12.11, 12.20)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-        
-    def testOlderDateTime(self):
-        """append should fail with candle input that has an older datetime than the most recently processed candle """
-        s = Ema(4)
-        testInput = inputValues[:8]
-        for c in testInput:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
-        self.assertRaises(InvalidDateTimeError, s.append, inputValues[4])
-        
-    def testIntegerDateTime(self):
-        """append should fail with candle input that does not have a datetime as first element """
-        s = Ema(4)
-        c = (1562516271, 12.34, 12.56, 12.11, 12.20, 2010912)
-        self.assertRaises(InvalidDateTimeError, s.append, c)
-        
-    def testNegativeLow(self):
-        """append should fail with negative low value"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), 12.34, 12.56, -12.11, 12.20, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-        
-    def testHighLowMixUp(self):
-        """append should fail with high lower than low"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), 12.34, 12.11, 12.56, 12.20, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-        
-    def testOpenHigherThanHigh(self):
-        """append should fail with open higher than high"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), 12.60, 12.56, 12.11, 12.20, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
-    
-    def testCloseLowerThanLow(self):
-        """append should fail with close lower than low"""
-        s = Ema(4)
-        c = (datetime.datetime(2006, 5, 19), 12.60, 12.56, 12.11, 12.09, 2010912)
-        self.assertRaises(InvalidCandleStickError, s.append, c)
         
 class KnownValues(unittest.TestCase):
     def testOutputKnownValues(self):
@@ -144,32 +57,6 @@ class KnownValues(unittest.TestCase):
         s = Ema(4)
         knownvalues = [None, None, None, 12.24, 12.372, 12.3032, 12.26992, 12.225952]
         for c in inputValues[:8]:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+            s.append(c)
         for i in range(len(s.output)):
             self.assertEqual(str(s.output[i]), str(knownvalues[i]))
-            
-class KnownSignals(unittest.TestCase):
-    def testCrossOverUp(self):
-        """ test whether a Signal is raised after an upper cross over """
-        s = Ema(3)
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.24, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.14, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.12, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 12.11, 12.78, 2010912))
-          
-    def testCrossOverDown(self):
-        """ test whether a Signal is raised after an down cross over """
-        s = Ema(3)
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.12, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.10, 12.14, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.18, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.22, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 11.69, 11.78, 2010912))
-           
-        
