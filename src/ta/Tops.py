@@ -6,6 +6,16 @@ class Tops(Indicator):
                     1 - L; 11 - LL; 21 - EL; 31 - HL
                     2 - H; 12 - LH; 22 - EH; 32 - HH
        """
+    # signal constants   
+    L  =  1
+    LL = 11
+    EL = 21
+    HL = 31
+    H  =  2
+    LH = 12
+    EH = 22
+    HH = 32
+    
     def __init__(self, *args, **kwargs):
         Indicator.__init__(self, None, *args, **kwargs)
        
@@ -58,8 +68,8 @@ class Tops(Indicator):
                 for k in range(j+1, len(self.output)-1): # checking for inbetween tops
                     if self.output[k] != 0: # top found
                         count += 1
-                        if self.output[k] in [1, 11, 21, 31]: self.pl.remove(k) # removing top indexes from list
-                        if self.output[k] in [2, 12, 22, 32]: self.ph.remove(k) # idem
+                        if self.output[k] in [self.L, self.LL, self.EL, self.HL]: self.pl.remove(k) # removing top indexes from list
+                        if self.output[k] in [self.H, self.LH, self.EH, self.HH]: self.ph.remove(k) # idem
                         self.output[k] = 0 # reset top
                 if count > 0:
                     if len(self.pl) and len(self.ph):
@@ -83,11 +93,11 @@ class Tops(Indicator):
             return
         if high  > self.inputhigh[self.mark[0]] and low >= self.inputlow[self.mark[0]]: # upbar
             if self.mark[1]  < 2: # upbar with previous indifferent or low mark
-                if self.pl == []: self.output[self.mark[0]] = 1 # L
+                if self.pl == []: self.output[self.mark[0]] = self.L # L
                 else:
-                    if    self.inputlow[self.mark[0]]  <   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 11 # LL
-                    elif  self.inputlow[self.mark[0]] ==   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 21 # EL
-                    elif  self.inputlow[self.mark[0]]  >   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = 31 # HL
+                    if    self.inputlow[self.mark[0]]  <   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = self.LL # LL
+                    elif  self.inputlow[self.mark[0]] ==   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = self.EL # EL
+                    elif  self.inputlow[self.mark[0]]  >   self.inputlow[self.pl[-1]]: self.output[self.mark[0]] = self.HL # HL
                 self.pl.append(self.mark[0])
                 self.last_fixed = self.mark[0], 1
                 self.mark = len(self.output), 2
@@ -99,11 +109,11 @@ class Tops(Indicator):
             return
         if high <= self.inputhigh[self.mark[0]] and low  < self.inputlow[self.mark[0]]: # downbar
             if self.mark[1] != 1: # downbar with previous indifferent or high mark
-                if self.ph == []: self.output[self.mark[0]] = 2 # H
+                if self.ph == []: self.output[self.mark[0]] = self.H # H
                 else:
-                    if   self.inputhigh[self.mark[0]]  < self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 12 # LH
-                    elif self.inputhigh[self.mark[0]] == self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 22 # EH
-                    elif self.inputhigh[self.mark[0]]  > self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = 32 # HH
+                    if   self.inputhigh[self.mark[0]]  < self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = self.LH # LH
+                    elif self.inputhigh[self.mark[0]] == self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = self.EH # EH
+                    elif self.inputhigh[self.mark[0]]  > self.inputhigh[self.ph[-1]]: self.output[self.mark[0]] = self.HH # HH
                 self.ph.append(self.mark[0])
                 self.last_fixed = self.mark[0], 2
                 self.mark = len(self.output), 1
@@ -125,8 +135,6 @@ class Tops(Indicator):
         self.ph = list(self.previousph)
         self.pl = list(self.previouspl)
         self.last_fixed = self.previouslast_fixed
-        #self.signal = self.signal[:-1]
-        #self.status = self.status[:-1]    
     
     # overloads
     def __str__(self):
