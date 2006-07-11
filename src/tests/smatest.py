@@ -144,32 +144,6 @@ class KnownValues(unittest.TestCase):
         s = Sma(4)
         knownvalues = [None, None, None, 12.24, 12.3325, 12.3275, 12.3425, 12.2875, 12.24, 12.3325, 12.3275, 12.3425, 12.2875, 12.24, 12.3325]
         for c in inputValues:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+            s.append(c)
         for i in range(len(s.output)):
             self.assertEqual(str(s.output[i]), str(knownvalues[i]))
-            
-class KnownSignals(unittest.TestCase):
-    def testCrossOverUp(self):
-        """ test whether a Signal is raised after an upper cross over """
-        s = Sma(3)
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.24, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.20, 12.22, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.14, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.12, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 12.11, 12.78, 2010912))
-          
-    def testCrossOverDown(self):
-        """ test whether a Signal is raised after an down cross over """
-        s = Sma(3)
-        s.append((datetime.datetime(2006, 5, 1), 12.34, 12.56, 12.11, 12.12, 2010912))
-        s.append((datetime.datetime(2006, 5, 2), 12.24, 12.48, 12.10, 12.14, 8791029))
-        s.append((datetime.datetime(2006, 5, 3), 12.18, 12.20, 11.88, 12.16, 5434255))
-        s.append((datetime.datetime(2006, 5, 4), 12.24, 12.68, 12.12, 12.18, 8734251))
-        s.append((datetime.datetime(2006, 5, 5), 12.30, 12.88, 12.10, 12.22, 3637262))
-        self.assertRaises(Signal, s.append, (datetime.datetime(2006, 5, 8), 12.34, 12.80, 11.69, 11.78, 2010912))
-           
-        
