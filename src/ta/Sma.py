@@ -5,24 +5,12 @@ from Indicator import *
 #logger = Logger.logger()
 
 class Sma(Indicator):
-    """ calculates Smooth Moving Average (SMA) indicator class
-            input:      data        = list or tuple of float or integer values
-                        parameter   = single integer
-            returns:    list of sma indicator with same length as data """
-    # signal constants
-    NO_SIGNAL = 0
-    CO = 1
-    # status constants
-    ABOVE = 1
-    EQUAL = 0
-    BELOW = -1
-    
+    """ calculates Smooth Moving Average (SMA) indicator class """
+   
     def __init__(self, parameter, *args, **kwargs):
         Indicator.__init__(self, parameter, *args, **kwargs)
         self.input = []
         self.output = []
-        self.signal = []
-        self.status = []
         
     def calculate(self, candle):
         value = candle[self.row]
@@ -41,8 +29,6 @@ class Sma(Indicator):
         Indicator.revertToPreviousState(self)
         self.input = self.input[:-1]
         self.output = self.output[:-1]
-        self.signal = self.signal[:-1]
-        self.status = self.status[:-1]
         
     def validateParameter(self, parameter):
         if type(parameter) is not int:
@@ -50,43 +36,11 @@ class Sma(Indicator):
         if parameter < 1:
             raise IndicatorError, 'invalid parameter for initializing Sma instance, should be an int > 0; input: %s' % (self.parameter, )
     
-    def signals(self):
-        if len(self.output) < 2:
-            self.signal.append(self.NO_SIGNAL)
-            self.status.append(None)
-        elif self.output[-1] == None or self.output[-2] == None:
-            self.signal.append(self.NO_SIGNAL)
-            self.status.append(None)
-        # CO ABOVE
-        elif (self.input[-1] > self.output[-1]) and (self.input[-2] < self.output[-2]):
-            self.signal.append(self.CO)
-            self.status.append(self.ABOVE)
-            raise Signal, self
-        # CO BELOW
-        elif (self.input[-1] < self.output[-1]) and (self.input[-2] > self.output[-2]):
-            self.signal.append(self.CO)
-            self.status.append(self.BELOW)
-            raise Signal, self
-        # NO_SIGNAL
-        else:
-            self.signal.append(self.NO_SIGNAL)
-            if self.input[-1] > self.output[-1]: self.status.append(self.ABOVE)
-            if self.input[-1] == self.output[-1]: self.status.append(self.EQUAL)
-            if self.input[-1] < self.output[-1]: self.status.append(self.BELOW)
-    
-    def getSignal(self):
-        if len(self.signal) > 0: return self.signal[-1]
-        else: return None
-        
-    def getStatus(self):
-        if len(self.status) > 0: return self.status[-1]
-        else: return None
-    
     # override functions
     def __str__(self):
         string = ''
         for i in xrange(len(self.input)):
-            string+='%s\t%s\t%s\t%s\t%s\t%s\n' % (i+1, self.times[i], self.input[i], str(self.output[i])[:9], self.signal[i], self.status[i])
+            string+='%s\t%s\t%s\t%s\n' % (i+1, self.times[i], self.input[i], str(self.output[i])[:9])
         return 'Sma(%s):\n%s' % (self.parameter, string)
     def __repr__(self):
         return 'Sma(%s)' % self.parameter
