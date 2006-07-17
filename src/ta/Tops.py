@@ -23,6 +23,8 @@ class Tops(Indicator):
         self.inputlow = []
         self.output = []
         
+        self.report = True
+        
         self.mark = 0, 0
         self.ph = [] # previous high list
         self.pl = [] # previous low list
@@ -79,15 +81,15 @@ class Tops(Indicator):
                         elif (self.ph[-1] > self.pl[-1]): # high is most recent
                             self.last_fixed = self.ph[-1], 2
                             self.mark = len(self.output)-1, 1
-                        elif len(self.pl) and not len(self.ph):
-                            self.last_fixed = self.pl[-1], 1
-                            self.mark = len(self.output)-1, 2
-                        elif len(self.ph) and not len(self.pl):
-                            self.last_fixed = self.ph[-1], 2
-                            self.mark = len(self.output)-1, 1
-                        elif not len(self.pl) and not len(self.ph):
-                            self.last_fixed = None
-                            self.mark = len(self.output)-1, 0 # current outside bar has become indifferent
+                    elif len(self.pl) and not len(self.ph):
+                        self.last_fixed = self.pl[-1], 1
+                        self.mark = len(self.output)-1, 2
+                    elif len(self.ph) and not len(self.pl):
+                        self.last_fixed = self.ph[-1], 2
+                        self.mark = len(self.output)-1, 1
+                    elif not len(self.pl) and not len(self.ph):
+                        self.last_fixed = None
+                        self.mark = len(self.output)-1, 0 # current outside bar has become indifferent
                 if count == 0:
                     self.mark = len(self.output)-1, self.mark[1] # set same signal to current outside bar
             return
@@ -136,6 +138,11 @@ class Tops(Indicator):
         self.pl = list(self.previouspl)
         self.last_fixed = self.previouslast_fixed
     
+    def sanityCheck(self, candle):
+        if (len(self.output) != len(self.times)) and self.report == True:
+            print "Output length out of sync with input; candle %s, self.times length: %s" % (candle, len(self.times))
+            self.report = False
+        
     # overloads
     def __str__(self):
         string = ''
@@ -150,6 +157,157 @@ class Tops(Indicator):
         return self.output[offset]
     def __getslice__(self, low, high):
         return self.output[low:high]
+    
+    # signals
+    def tops(self, number=6):
+        result = []
+        for i in xrange(len(self.output)-1,-1,-1):
+            if self.output[i] != 0: 
+                result.insert(0, self.output[i]) # 'append' at the start
+                if len(result) == number: break
+        return tuple(result)
+    
+    # L HH HL variations
+    def signal_ALHHHL(self):
+        patterns = [(11,32,31), (21,32,31), (31,32,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_LLHHHL(self):
+        '(LL, HH, HL)'
+        patterns = [(11,32,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+    
+    def signal_LorELHHHL(self):
+        '(LL or EL, HH, HL)'
+        patterns = [(11,32,31), (21,32,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_HLHHHL(self):
+        '(HL, HH, HL)'
+        patterns = [(31,32,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_EorHLHHHL(self):
+        '(EL or HL, HH, HL)'
+        patterns = [(21,32,31), (31,32,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    # L LH HL variations; TO-DO
+    def signal_ALLHHL(self):
+        patterns = [(11,12,31), (21,12,31), (31,12,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_LLLHHL(self):
+        '(LL, LH, HL)'
+        patterns = [(11,12,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+    
+    def signal_LorELLHHL(self):
+        '(LL or EL, LH, HL)'
+        patterns = [(11,12,31), (21,12,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_HLLHHL(self):
+        '(HL, LH, HL)'
+        patterns = [(31,12,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_EorHLLHHL(self):
+        '(EL or HL, LH, HL)'
+        patterns = [(21,12,31), (31,12,31)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+    
+    # H LL LH variations
+    def signal_AHLLLH(self):
+        '(LH or EH or HH, LL, LH)'
+        patterns = [(12,11,12), (22,11,12), (32,11,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_HLLLLH(self):
+        '(HL, LL, LH)'
+        patterns = [(32,11,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+    
+    def signal_LorEHLLLH(self):
+        '(LH or EH, LL, LH)'
+        patterns = [(12,11,12), (22,11,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_LHLLLH(self):
+        '(LH, LL, LH)'
+        patterns = [(12,11,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_EorHHLLLH(self):
+        '(EH or HH, LL, LH)'
+        patterns = [(22,11,12), (32,11,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    # H HL LH variations
+    def signal_AHHLLH(self):
+        '(LH or EH or HH, HL, LH)'
+        patterns = [(12,31,12), (22,31,12), (32,31,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_HLHLLH(self):
+        '(HL, HL, LH)'
+        patterns = [(32,31,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+    
+    def signal_LorEHHLLH(self):
+        '(LH or EH, HL, LH)'
+        patterns = [(12,31,12), (22,31,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_LHHLLH(self):
+        '(LH, HL, LH)'
+        patterns = [(12,31,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
+        
+    def signal_EorHHHLLH(self):
+        '(EH or HH, HL, LH)'
+        patterns = [(22,31,12), (32,31,12)]
+        toppattern = self.tops(3)
+        if toppattern in patterns: return True
+        else: return False
 
 if __name__=='__main__':
     ind = Tops()
