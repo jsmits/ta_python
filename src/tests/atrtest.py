@@ -100,10 +100,7 @@ class AppendBadInput(unittest.TestCase):
         s = Atr(4)
         testInput = inputValues[:8]
         for c in testInput:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+            s.append(c)
         self.assertRaises(InvalidDateTimeError, s.append, inputValues[4])
         
     def testIntegerDateTime(self):
