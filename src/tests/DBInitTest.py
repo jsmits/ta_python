@@ -27,6 +27,22 @@ class TAdb:
             list = None
         return list
     
+    def exampleTickData(self):
+        
+        sql = "SELECT date, time, open, high, low, close FROM candlesticks WHERE ticker_id=102 AND period=1 order by date, time limit 600"
+        data = self.execute(sql)
+    
+        result = []
+        for candle in data:
+            d = datetime.datetime(candle[0].year, candle[0].month, candle[0].day) + candle[1]
+            d = d - datetime.timedelta(0, 60) # correct for database storage
+ 
+            for i in range(4):
+                tick = (d, candle[i+2])
+                result.append((tick[0], tick[1]))
+                d = d + datetime.timedelta(0, 15)
+        return result
+            
 if __name__ == '__main__':
     
     ta = TAdb()
