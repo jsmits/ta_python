@@ -50,3 +50,12 @@ class Sma(Indicator):
         return self.output[offset]
     def __getslice__(self, low, high):
         return self.output[low:high]
+    
+    # signals
+    def signal_crossoverup(self):
+        if len(self.times) > 1 and self.input[-1] > self.output[-1] and self.input[-2] < self.output[-2]: return True
+        return False
+
+    def signal_crossoverdown(self):
+        if len(self.times) > 1 and self.input[-1] < self.output[-1] and self.input[-2] > self.output[-2]: return True
+        return False
