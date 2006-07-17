@@ -17,10 +17,8 @@ class Macd(Indicator):
     def calculate(self, candle):
         value = candle[self.row]
         self.input.append(float(value))
-        try: self.s_ema.append(candle)
-        except Signal: pass
-        try: self.l_ema.append(candle)
-        except Signal: pass
+        self.s_ema.append(candle)
+        self.l_ema.append(candle)
         
         outputvalue = None
         if len(self.input) >= self.parameter[1]:
