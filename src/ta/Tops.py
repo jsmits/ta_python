@@ -50,7 +50,7 @@ class Tops(Indicator):
         self.inputhigh.append(high)
         self.inputlow.append(low)
         
-        if len(self.inputhigh)==0:
+        if len(self.inputhigh)==1:
             self.output.append(0)
             return
         
@@ -62,6 +62,7 @@ class Tops(Indicator):
                 self.output.append(0)
                 self.mark = len(self.output)-1, 0
             else:
+                self.output.append(0) # added new code line 17-7-2006 !!!
                 self.output[self.mark[0]] = 0
                 for j in reversed(range(len(self.output)-1)):
                     if self.inputhigh[j] > high or self.inputlow[j] < low: # first non-inclusive bar
