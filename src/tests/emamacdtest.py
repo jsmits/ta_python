@@ -103,10 +103,7 @@ class AppendBadInput(unittest.TestCase):
         s = EmaMacd(4)
         testInput = inputValues[:8]
         for c in testInput:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+            s.append(c)
         self.assertRaises(InvalidDateTimeError, s.append, inputValues[4])
         
     def testIntegerDateTime(self):
@@ -141,10 +138,7 @@ class KnownValues(unittest.TestCase):
         s = EmaMacd(4)
         knownvalues = [None, None, None, 12.24, 12.372, 12.3032, 12.26992, 12.225952]
         for c in inputValues[:11]:
-            try:
-                s.append(c)
-            except Signal, obj:
-                pass
+            s.append(c)
         for i in range(len(s.output)):
             self.assertEqual(str(s.output[i]), str(knownvalues[i]))
             
