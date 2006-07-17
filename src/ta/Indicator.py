@@ -6,11 +6,7 @@ class InvalidCandleStickError(IndicatorError): pass
 class NotTupleError(InvalidCandleStickError): pass
 class NotFloatError(InvalidCandleStickError): pass
 class InvalidDateTimeError(InvalidCandleStickError): pass
-
-#status
-class Status:
-    def __init__(self, indicator):
-        self.indicator = indicator
+class IndicatorSignalError(IndicatorError): pass
 
 class Indicator:
     def __init__(self, parameter, *args, **kwargs):
@@ -18,6 +14,8 @@ class Indicator:
         self.validateParameter(self.parameter)
         self.row = 4 # close
         if args: self.row = args[0]
+        for k,v in kwargs.items():
+            setattr(self, k, v)
         
         self.times = []
         self.opens = []
@@ -34,6 +32,7 @@ class Indicator:
             self.revertToPreviousState()
         self.calculate(candle)
         self.updateLists(candle)
+        self.sanityCheck(candle)
         
     def revertToPreviousState(self):
         # remove previous virtual candle
@@ -50,6 +49,9 @@ class Indicator:
     def validateParameter(self, parameter):
         pass
     
+    def sanityCheck(self, candle):
+        pass
+    
     def updateLists(self, candle):
         self.times.append(candle[0])   # datetime
         self.opens.append(candle[1])   # open
@@ -58,6 +60,21 @@ class Indicator:
         self.closes.append(candle[4])  # close
         self.volumes.append(candle[5]) # volume
         
+    def signal(self):
+        signals = getattr(self, 'signals', 'notset')
+        if signals == 'notset': raise IndicatorSignalError, 'signal method called without a signals attribute'
+        if type(signals) is not tuple and type(signals) is not list:
+            raise IndicatorSignalError, 'signals should be a tuple or a list; input: %s' % (signals, )
+        for name in signals:
+            if not hasattr(self, 'signal_' + name): raise IndicatorSignalError, 'signal_%s method does not exist' % (name, )
+            else: 
+                method = getattr(self, 'signal_' + name)
+                if callable(method):
+                    if method() == False: return False
+                    elif method() != True: raise IndicatorSignalError, 'signal_%s should return True or False' % (name, )
+                else: raise IndicatorSignalError, 'signal_%s is not a callable method' % (name, )
+        return True
+    
     def validateInput(self, candle):
         if type(candle) is not tuple:
             raise NotTupleError, 'invalid input: should be a tuple (d, o, h, l, c, v); input: %s' % (candle, )
@@ -80,3 +97,4 @@ class Indicator:
             raise InvalidDateTimeError, 'invalid input: tuple element [0] (datetime) should be equal or greater than previous: %s; input: %s' % (self.times[-1], candle[0])  
         if type(candle[5]) is not int:
             raise InvalidCandleStickError, 'invalid input: volume should be int; input: %s' % candle[5]
+
