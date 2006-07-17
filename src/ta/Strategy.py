@@ -23,7 +23,7 @@ class Strategy:
     def evaluate(self):
         if self.buy():
             return self.BUY
-        if self.sellShort():
+        if self.sellshort():
             return self.SELLSHORT
         if self.sell():
             return self.SELL
