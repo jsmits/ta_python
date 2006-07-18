@@ -23,8 +23,6 @@ class Tops(Indicator):
         self.inputlow = []
         self.output = []
         
-        self.report = True
-        
         self.mark = 0, 0
         self.ph = [] # previous high list
         self.pl = [] # previous low list
@@ -139,11 +137,6 @@ class Tops(Indicator):
         self.pl = list(self.previouspl)
         self.last_fixed = self.previouslast_fixed
     
-    def sanityCheck(self, candle):
-        if (len(self.output) != len(self.times)) and self.report == True:
-            print "Output length out of sync with input; candle %s, self.times length: %s" % (candle, len(self.times))
-            self.report = False
-        
     # overloads
     def __str__(self):
         string = ''
