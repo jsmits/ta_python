@@ -2,6 +2,7 @@ import logging
 import logging.config
 import os
 import datetime
+from Strategy import *
 
 class Tradable:
     
@@ -32,6 +33,8 @@ class Tradable:
             return
         for strategy in self.strategies: # pass the tick to the strategies
             strategy.handleTick(time, last)
+            action = strategy.actionType()
+            self.handleAction(action)
         
     def _validateTick(self, time, last):
         if not time:
@@ -47,4 +50,19 @@ class Tradable:
             self.logger.error('invalid input: last should be an int or float; input: %s' % (last,)) 
             return False    
         return True
+    
+    def handleAction(self, action):
+        if action == Strategy.NOACTION:
+            pass
+        if action == Strategy.BUY:
+            # check if we can send out a buy
+            # build an order dictionary and send it to the orderlistener
+            # e.g. {'id' : self.id, 'action' : action, 'price' : last, 'time' : time, 'number' : 200}
+            # if ok, update the orderstatus object
+            pass
+        if action == Strategy.SELLSHORT:
+            pass
+        if action == Strategy.SELL:
+            pass
+        
         
