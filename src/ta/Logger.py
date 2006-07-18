@@ -18,7 +18,6 @@ def logger(name='ta', level=logger_level_debug, format=logger_format,
            date_format=logger_date_format):
     """ logger(level) -> returns a logger all fixed up
         add handlers if needed in the logger_handlers list
-    
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)
