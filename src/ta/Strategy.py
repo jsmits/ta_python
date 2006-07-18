@@ -10,33 +10,25 @@ class Strategy:
     SELLSHORT = 2
     SELL = 3
     
-    def __init__(self, timeframes = []):
+    def __init__(self, timeframes = [], action=BUY):
 
         self.timeframes = timeframes
+        self.action = action
         
     def handleTick(self, time, last):
         # validation is done in Tradable
         for timeframe in self.timeframes:
             timeframe.handleTick(time, last)
-        return self.evaluate()
         
-    def evaluate(self):
-        if self.buy():
-            return self.BUY
-        if self.sellshort():
-            return self.SELLSHORT
-        if self.sell():
-            return self.SELL
-        return self.NOACTION
-        
-    def buy(self):
-        pass
-    
-    def sellshort(self):
-        pass
-    
-    def sell(self):
-        pass
+    def actionType(self):
+        if not self.timeframes: return self.NOACTION
+        for timeframe in self.timeframes:
+            if not timeframe.indicators: return self.NOACTION
+            for indicator in timeframe.indicators:
+                if indicator.signal() == False: return self.NOACTION
+                elif indicator.signal() != True:
+                    raise Exception, 'indicator signal should always be True or False; signal %s' % indicator.signal
+        return self.action
     
     
     
