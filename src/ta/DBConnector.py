@@ -25,9 +25,9 @@ class TAdb:
             list = None
         return list
     
-    def exampleTickData(self):
+    def exampleTickData(self, number=2400):
         
-        sql = "SELECT date, time, open, high, low, close FROM candlesticks WHERE ticker_id=102 AND period=1 order by date, time limit 600"
+        sql = "SELECT date, time, open, high, low, close FROM candlesticks WHERE ticker_id=102 AND period=1 order by date, time limit %s" % (number / 4)
         data = self.execute(sql)
     
         result = []
