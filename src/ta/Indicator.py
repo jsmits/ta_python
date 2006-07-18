@@ -32,7 +32,6 @@ class Indicator:
             self.revertToPreviousState()
         self.calculate(candle)
         self.updateLists(candle)
-        self.sanityCheck(candle)
         
     def revertToPreviousState(self):
         # remove previous virtual candle
